@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<!-- saved from url=(0035)https://tsl0922.github.io/EPD-nRF5/ -->
+<html lang="vi"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Lịch Màn Hình E-Ink</title>
+	<link rel="shortcut icon" type="image/png" href="https://tsl0922.github.io/EPD-nRF5/favicon.png">
+	<link rel="stylesheet" href="./墨水屏日历_files/main.css">
+</head>
+
+<body>
+	<div class="main">
+		<h3>墨水屏日历</h3>
+		<fieldset>
+			<legend>蓝牙连接</legend>
+			<div class="flex-container">
+				<div class="flex-group">
+					<button id="connectbutton" type="button" class="primary" onclick="preConnect()">连接</button>
+					<button id="reconnectbutton" type="button" class="secondary" onclick="reConnect()" disabled="">重连</button>
+					<button type="button" class="secondary" onclick="clearLog()">清空日志</button>
+				</div>
+				<div class="flex-group right debug">
+					<label for="epddriver">驱动</label>
+					<select id="epddriver" onchange="updateDitcherOptions()">
+						<option value="01" data-color="blackWhiteColor" data-size="4.2_400_300">4.2寸 (黑白, UC8176)</option>
+						<option value="03" data-color="threeColor" data-size="4.2_400_300">4.2寸 (三色, UC8176)</option>
+						<option value="04" data-color="blackWhiteColor" data-size="4.2_400_300">4.2寸 (黑白, SSD1619)</option>
+						<option value="02" data-color="threeColor" data-size="4.2_400_300">4.2寸 (三色, SSD1619)</option>
+						<option value="05" data-color="fourColor" data-size="4.2_400_300">4.2寸 (四色, JD79668)</option>
+						<option value="0d" data-color="fourColor" data-size="5.83_648_480">5.83寸 (四色, JD79665)</option>
+						<option value="06" data-color="blackWhiteColor" data-size="7.5_800_480">7.5寸 (黑白, UC8179)</option>
+						<option value="07" data-color="threeColor" data-size="7.5_800_480">7.5寸 (三色, UC8179)</option>
+						<option value="0c" data-color="fourColor" data-size="7.5_800_480">7.5寸 (四色, JD79665)</option>
+						<option value="08" data-color="blackWhiteColor" data-size="7.5_640_384">7.5寸低分 (黑白, UC8159)</option>
+						<option value="09" data-color="threeColor" data-size="7.5_640_384">7.5寸低分 (三色, UC8159)</option>
+						<option value="0a" data-color="blackWhiteColor" data-size="7.5_880_528">7.5寸HD (黑白, SSD1677)</option>
+						<option value="0b" data-color="threeColor" data-size="7.5_880_528">7.5寸HD (三色, SSD1677)</option>
+					</select>
+				</div>
+				<div class="flex-group debug">
+					<label for="epdpins">引脚</label>
+					<input id="epdpins" type="text" value="">
+					<button id="setDriverbutton" type="button" class="primary" onclick="setDriver()" disabled="">确定</button>
+				</div>
+			</div>
+			<div class="log-container" id="log"></div>
+		</fieldset>
+		<fieldset>
+			<legend>设备控制</legend>
+			<div class="flex-container">
+				<div class="flex-group">
+					<button id="calendarmodebutton" type="button" class="primary" onclick="syncTime(1)" disabled="">日历模式</button>
+					<button id="clockmodebutton" type="button" class="primary" onclick="syncTime(2)" disabled="">时钟模式</button>
+					<button id="clearscreenbutton" type="button" class="secondary" onclick="clearScreen()" disabled="">清除屏幕</button>
+				</div>
+				<div class="flex-group right debug">
+					<input type="text" id="cmdTXT" value="">
+					<button id="sendcmdbutton" type="button" class="primary" onclick="sendcmd()" disabled="">发送命令</button>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>蓝牙传图</legend>
+			<div class="flex-container">
+				<input type="file" id="imageFile" accept=".png,.jpg,.bmp,.webp,.jpeg" onchange="updateImage()">
+			</div>
+			<div class="flex-container options">
+				<div class="flex-group debug">
+					<label for="canvasSize">画布尺寸:</label>
+					<select id="canvasSize" onchange="updateCanvasSize()">
+						<option value="1.54_152_152">1.54 (152x152)</option>
+						<option value="1.54_200_200">1.54 (200x200)</option>
+						<option value="2.13_104_212">2.13 (104x212)</option>
+						<option value="2.13_122_250">2.13 (122x250)</option>
+						<option value="2.66_152_296">2.66 (152x296)</option>
+						<option value="2.66_184_360">2.66 (184x360)</option>
+						<option value="2.9_128_296">2.9 (128x296)</option>
+						<option value="2.9_168_384">2.9 (168x384)</option>
+						<option value="3.5_184_384">3.5 (184x384)</option>
+						<option value="3.5_360_600">3.5 (360x600)</option>
+						<option value="3.7_240_416">3.7 (240x416)</option>
+						<option value="3.7_280_480">3.7 (280x480)</option>
+						<option value="3.97_800_480">3.97 (800x480)</option>
+						<option value="3.98_768_552">3.98 (768x552)</option>
+						<option value="4.2_400_300" selected="">4.2 (400x300)</option>
+						<option value="5.79_792_272">5.79 (792x272)</option>
+						<option value="5.83_600_448">5.83 (600x448)</option>
+						<option value="5.83_648_480">5.83 (648x480)</option>
+						<option value="7.5_640_384">7.5 (640x384)</option>
+						<option value="7.5_800_480">7.5 (800x480)</option>
+						<option value="7.5_880_528">7.5 (880x528)</option>
+						<option value="10.2_960_640">10.2 (960x640)</option>
+						<option value="10.85_1360_480">10.85 (1360x480)</option>
+						<option value="11.6_960_640">11.6 (960x640)</option>
+						<option value="4.0E6_600_400">4.0E6 (600x400)</option>
+						<option value="7.3E6_800_480">7.3E6 (800x480)</option>
+					</select>
+				</div>
+				<div class="flex-group debug">
+					<label for="ditherMode">颜色模式:</label>
+					<select id="ditherMode" onchange="applyDither()">
+						<option value="blackWhiteColor">双色(黑白)</option>
+						<option value="threeColor">三色(黑白红)</option>
+						<option value="fourColor">四色(黑白红黄)</option>
+						<option value="sixColor">六色(黑白红黄蓝绿)</option>
+					</select>
+				</div>
+				<div class="flex-group">
+					<label for="ditherAlg">抖动算法:</label>
+					<select id="ditherAlg" onchange="applyDither()">
+						<option value="floydSteinberg">Floyd-Steinberg</option>
+						<option value="atkinson">Atkinson</option>
+						<option value="bayer">Bayer</option>
+						<option value="stucki">Stucki</option>
+						<option value="jarvis">Jarvis-Judice-Ninke</option>
+						<option value="none">无抖动</option>
+					</select>
+				</div>
+				<div class="flex-group">
+					<label for="ditherStrength">抖动强度:</label>
+					<input type="range" min="0" max="5" step="0.1" value="1.0" id="ditherStrength">
+					<label id="ditherStrengthValue">1.0</label>
+				</div>
+				<div class="flex-group">
+					<label for="ditherContrast">对比度:</label>
+					<input type="range" min="0.5" max="2" step="0.1" value="1.2" id="ditherContrast">
+					<label id="ditherContrastValue">1.2</label>
+				</div>
+			</div>
+			<div class="flex-container options">
+				<div class="flex-group debug">
+					<label for="mtusize">MTU:</label>
+					<input type="number" id="mtusize" value="20" min="0" max="255">
+					<label for="interleavedcount">确认间隔:</label>
+					<input type="number" id="interleavedcount" value="50" min="0" max="500">
+				</div>
+			</div>
+			<div class="status-bar"><b>状态：</b><span id="status"></span></div>
+			<div class="flex-container">
+				<div class="flex-group">
+					<button type="button" class="secondary debug" onclick="rotateCanvas()">旋转画布</button>
+					<button type="button" class="secondary" onclick="clearCanvas()">清除画布</button>
+					<button type="button" class="secondary debug" onclick="downloadDataArray()">下载数组</button>
+					<button id="sendimgbutton" type="button" class="primary" onclick="sendimg()" disabled="">发送图片</button>
+				</div>
+			</div>
+			<div class="canvas-container">
+				<div class="canvas-title"></div>
+				<canvas id="canvas" width="400" height="300"></canvas>
+				<div class="flex-container canvas-tools">
+					<div class="flex-group tool-buttons">
+						<button id="brush-mode" title="画笔" class="tool-button">✏️</button>
+						<button id="eraser-mode" title="橡皮擦" class="tool-button">🧽</button>
+						<button id="text-mode" title="添加文字" class="tool-button">T</button>
+						<button id="undo-btn" title="撤销 (Ctrl+Z)" class="tool-button hide" disabled="">↶</button>
+						<button id="redo-btn" title="重做 (Ctrl+Y)" class="tool-button hide" disabled="">↷</button>
+					</div>
+				</div>
+				<div class="flex-container canvas-tools">
+					<div class="flex-group brush-tools">
+						<label for="brush-color">颜色:</label>
+						<select id="brush-color">
+							<option value="#000000">黑色</option>
+							<option value="#FF0000">红色</option>
+							<option value="#FFFF00">黄色</option>
+							<option value="#00FF00">绿色</option>
+							<option value="#0000FF">蓝色</option>
+							<option value="#FFFFFF">白色</option>
+						</select>
+						<label for="brush-size">粗细:</label>
+						<input type="number" id="brush-size" value="2" min="1" max="100">
+					</div>
+				</div>
+				<div class="flex-container canvas-tools">
+					<div class="flex-group text-tools">
+						<label for="font-family">字体:</label>
+						<select id="font-family">
+							<option value="Arial">Arial</option>
+							<option value="sans-serif">Sans-serif</option>
+							<option value="monospace">Monospace</option>
+							<option value="SimSun">宋体</option>
+							<option value="SimHei">黑体</option>
+							<option value="Microsoft Yahei">微软雅黑</option>
+							<option value="Microsoft JhengHei">微软正黑体</option>
+							<option value="KaiTi">楷体</option>
+							<option value="NSimSun">新宋体</option>
+							<option value="FangSong">仿宋</option>
+							<option value="YouYuan">幼圆</option>
+							<option value="LiSu">隶书</option>
+							<option value="STHeiti">华文黑体</option>
+							<option value="STXihei">华文细黑</option>
+							<option value="STKaiti">华文楷体</option>
+							<option value="STSong">华文宋体</option>
+							<option value="STFangsong">华文仿宋</option>
+							<option value="STZhongsong">华文中宋</option>
+							<option value="STHupo">华文琥珀</option>
+							<option value="STXinwei">华文新魏</option>
+							<option value="STLiti">华文隶书</option>
+							<option value="STXingkai">华文行楷</option>
+							<option value="FZShuTi">方正舒体</option>
+							<option value="FZYaoti">方正姚体</option>
+							<option value="PingFang SC">苹方</option>
+							<option value="Source Han Sans CN">思源黑体</option>
+							<option value="Source Han Serif SC">思源宋体</option>
+							<option value="WenQuanYi Micro Hei">文泉驿微米黑</option>
+							
+						</select>
+						<label for="font-size">大小:</label>
+						<input type="number" id="font-size" value="16" min="1" max="100">
+					</div>
+					<div class="flex-group text-tools">
+						<input type="text" id="text-input" placeholder="输入文字" style="width:150px">
+						<button id="text-bold" title="粗体">B</button>
+						<button id="text-italic" title="斜体">I</button>
+						<button id="add-text-btn" class="primary">添加文字</button>
+					</div>
+					<div class="flex-group crop-tools">
+						<button id="crop-zoom-in" title="放大" class="secondary">+</button>
+						<button id="crop-zoom-out" title="缩小" class="secondary">-</button>
+						<button id="crop-move-left" title="左移">⇦</button>
+						<button id="crop-move-up" title="上移">⇧</button>
+						<button id="crop-move-down" title="下移">⇩</button>
+						<button id="crop-move-right" title="右移">⇨</button>
+						<button class="primary" onclick="applyDither()">完成</button>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<div class="footer">
+			<span class="copy">© 2025 tsl0922.</span>
+			<span class="links">
+				<a href="https://github.com/tsl0922/EPD-nRF5">Github</a>
+				<a href="https://qm.qq.com/q/SckzhfDxuu" onclick="return confirm(&#39;本群是此开源固件作者的技术交流群\n如果你购买了成品，请找卖家提供售后！&#39;)">交流群</a>
+				<a href="https://tsl0922.github.io/EPD-nRF5/?debug=true" id="debug-toggle">开发模式</a>
+			</span>
+		</div>
+	</div>
+	<script src="./墨水屏日历_files/hm.js.download"></script><script type="text/javascript" src="./墨水屏日历_files/dithering.js.download"></script>
+	<script type="text/javascript" src="./墨水屏日历_files/paint.js.download"></script>
+	<script type="text/javascript" src="./墨水屏日历_files/crop.js.download"></script>
+	<script type="text/javascript" src="./墨水屏日历_files/main.js.download"></script>
+	<script>
+		var _hmt = _hmt || [];
+		(function () {
+			var hm = document.createElement("script");
+			hm.src = "https://hm.baidu.com/hm.js?c5949ebea1f35f725f7b05fcce462b61";
+			var s = document.getElementsByTagName("script")[0];
+			s.parentNode.insertBefore(hm, s);
+		})();
+	</script>
+
+
+<div id="brush-cursor" style="position: fixed; border: 2px solid rgba(0, 0, 0, 0.5); border-radius: 50%; pointer-events: none; display: none; z-index: 10000; transform: translate(-50%, -50%); will-change: transform; left: 0px; top: 0px; width: 2.01px; height: 2.01px;"></div>
+<script>
+(function () {
+    function setText(selector, text) {
+        const el = document.querySelector(selector);
+        if (el) el.textContent = text;
+    }
+
+    function setTitle(selector, text) {
+        const el = document.querySelector(selector);
+        if (el) el.title = text;
+    }
+
+    function setPlaceholder(selector, text) {
+        const el = document.querySelector(selector);
+        if (el) el.placeholder = text;
+    }
+
+    function setLegend(index, text) {
+        const legends = document.querySelectorAll('legend');
+        if (legends[index]) legends[index].textContent = text;
+    }
+
+    function setLabelFor(forId, text) {
+        const label = document.querySelector('label[for="' + forId + '"]');
+        if (label) label.textContent = text;
+    }
+
+    function setOptionTexts(selector, values) {
+        const options = document.querySelectorAll(selector + ' option');
+        values.forEach((text, index) => {
+            if (options[index]) options[index].textContent = text;
+        });
+    }
+
+    function injectActivationTool() {
+        const fieldsets = document.querySelectorAll('.main > fieldset');
+        if (!fieldsets[1] || document.getElementById('activation-tool')) return;
+
+        const wrapper = document.createElement('fieldset');
+        wrapper.id = 'activation-tool';
+        wrapper.innerHTML = [
+            '<legend>Công cụ mã kích hoạt</legend>',
+            '<div class="flex-container">',
+            '  <div class="flex-group" style="flex: 2 1 420px;">',
+            '    <label for="deviceKeyInput">4 ký tự cuối tên thiết bị</label>',
+            '    <input type="text" id="deviceKeyInput" placeholder="Ví dụ: B5F1" maxlength="4" style="text-transform:uppercase">',
+            '  </div>',
+            '  <div class="flex-group" style="flex: 3 1 520px;">',
+            '    <label for="activationMapInput">Bảng mã kích hoạt</label>',
+            '    <textarea id="activationMapInput" rows="6" style="width:100%;min-height:120px;">B5F1:50495833',
+            '7D3C:50869926',
+            '4935:50666827',
+            '2F4E:50974328',
+            '975D:50573537</textarea>',
+            '  </div>',
+            '</div>',
+            '<div class="flex-container">',
+            '  <div class="flex-group">',
+            '    <button type="button" class="primary" id="lookupActivationBtn">Tra mã</button>',
+            '    <button type="button" class="secondary" id="fillActivationBtn">Đổ vào ô gửi lệnh</button>',
+            '    <button type="button" class="secondary" id="sendActivationBtn">Gửi mã kích hoạt</button>',
+            '  </div>',
+            '</div>',
+            '<div class="flex-container">',
+            '  <div class="flex-group">',
+            '    <label for="activationCodeOutput">Mã kích hoạt</label>',
+            '    <input type="text" id="activationCodeOutput" readonly>',
+            '  </div>',
+            '  <div class="flex-group">',
+            '    <label for="activationCommandOutput">Lệnh gửi</label>',
+            '    <input type="text" id="activationCommandOutput" readonly>',
+            '  </div>',
+            '</div>',
+            '<div class="log-container" id="activationToolStatus" style="min-height:48px;padding:8px 12px;color:#ddd;">',
+            'Nhập 4 ký tự cuối tên thiết bị, ví dụ <code>B5F1</code>. Tool này hiện tra theo bảng mã bạn cung cấp và sẽ tạo lệnh dạng <code>EFxxxxxxxx</code>.',
+            '</div>'
+        ].join('');
+
+        fieldsets[1].insertAdjacentElement('afterend', wrapper);
+
+        const keyInput = document.getElementById('deviceKeyInput');
+        const mapInput = document.getElementById('activationMapInput');
+        const codeOutput = document.getElementById('activationCodeOutput');
+        const cmdOutput = document.getElementById('activationCommandOutput');
+        const statusBox = document.getElementById('activationToolStatus');
+
+        function normalizeKey(value) {
+            return String(value || '').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 4);
+        }
+
+        function parseMap(text) {
+            const map = new Map();
+            String(text || '')
+                .split(/\r?\n/)
+                .map(line => line.trim())
+                .filter(Boolean)
+                .forEach(line => {
+                    const match = line.match(/^([0-9A-Fa-f]{4})\s*[:=-]\s*([0-9A-Fa-f]{8})$/);
+                    if (match) {
+                        map.set(match[1].toUpperCase(), match[2].toUpperCase());
+                    }
+                });
+            return map;
+        }
+
+        function setStatus(message) {
+            statusBox.textContent = message;
+        }
+
+        function lookupActivation() {
+            const key = normalizeKey(keyInput.value);
+            keyInput.value = key;
+            if (key.length !== 4) {
+                codeOutput.value = '';
+                cmdOutput.value = '';
+                setStatus('Mã thiết bị phải gồm đúng 4 ký tự hex, ví dụ: B5F1.');
+                return null;
+            }
+
+            const map = parseMap(mapInput.value);
+            const code = map.get(key);
+            if (!code) {
+                codeOutput.value = '';
+                cmdOutput.value = '';
+                setStatus('Chưa có mã cho thiết bị ' + key + '. Hãy thêm một dòng theo dạng B5F1:50495833.');
+                return null;
+            }
+
+            codeOutput.value = code;
+            cmdOutput.value = 'EF' + code;
+            setStatus('Đã tra được mã cho ' + key + '. Bạn có thể đổ vào ô gửi lệnh hoặc gửi trực tiếp.');
+            return { key, code, command: 'EF' + code };
+        }
+
+        document.getElementById('lookupActivationBtn').addEventListener('click', lookupActivation);
+        document.getElementById('fillActivationBtn').addEventListener('click', function () {
+            const result = lookupActivation();
+            if (!result) return;
+            const cmdInput = document.getElementById('cmdTXT');
+            if (cmdInput) {
+                cmdInput.value = result.command;
+                setStatus('Đã đổ lệnh ' + result.command + ' vào ô gửi lệnh.');
+            }
+        });
+        document.getElementById('sendActivationBtn').addEventListener('click', async function () {
+            const result = lookupActivation();
+            if (!result) return;
+            const cmdInput = document.getElementById('cmdTXT');
+            if (!cmdInput || typeof window.sendcmd !== 'function') {
+                setStatus('Không tìm thấy ô gửi lệnh hoặc hàm gửi lệnh trên trang.');
+                return;
+            }
+            cmdInput.value = result.command;
+            try {
+                await window.sendcmd();
+                setStatus('Đã gửi lệnh kích hoạt ' + result.command + '.');
+            } catch (error) {
+                setStatus('Gửi lệnh thất bại: ' + (error && error.message ? error.message : error));
+            }
+        });
+        keyInput.addEventListener('input', function () {
+            this.value = normalizeKey(this.value);
+        });
+    }
+
+    function applyStaticTranslation() {
+        document.title = 'Lịch Màn Hình E-Ink';
+        setText('h3', 'Lịch Màn Hình E-Ink');
+
+        setLegend(0, 'Kết nối Bluetooth');
+        setLegend(1, 'Điều khiển thiết bị');
+        setLegend(2, 'Truyền ảnh qua Bluetooth');
+
+        setText('#connectbutton', 'Kết nối');
+        setText('#reconnectbutton', 'Kết nối lại');
+        setText('button[onclick="clearLog()"]', 'Xóa nhật ký');
+        setLabelFor('epddriver', 'Driver');
+        setLabelFor('epdpins', 'Chân kết nối');
+        setText('#setDriverbutton', 'Xác nhận');
+
+        setText('#calendarmodebutton', 'Chế độ lịch');
+        setText('#clockmodebutton', 'Chế độ đồng hồ');
+        setText('#clearscreenbutton', 'Xóa màn hình');
+        setText('#sendcmdbutton', 'Gửi lệnh');
+
+        setLabelFor('canvasSize', 'Kích thước canvas:');
+        setLabelFor('ditherMode', 'Chế độ màu:');
+        setLabelFor('ditherAlg', 'Thuật toán dithering:');
+        setLabelFor('ditherStrength', 'Cường độ dithering:');
+        setLabelFor('ditherContrast', 'Độ tương phản:');
+        setLabelFor('mtusize', 'MTU:');
+        setLabelFor('interleavedcount', 'Khoảng xác nhận:');
+        setText('.status-bar b', 'Trạng thái:');
+
+        const mainButtons = document.querySelectorAll('fieldset:nth-of-type(3) > .flex-container:nth-of-type(4) button');
+        if (mainButtons[0]) mainButtons[0].textContent = 'Xoay canvas';
+        if (mainButtons[1]) mainButtons[1].textContent = 'Xóa canvas';
+        if (mainButtons[2]) mainButtons[2].textContent = 'Tải mảng dữ liệu';
+        if (mainButtons[3]) mainButtons[3].textContent = 'Gửi ảnh';
+
+        setText('#brush-mode', 'Cọ');
+        setText('#eraser-mode', 'Tẩy');
+        setText('#text-mode', 'T');
+        setText('#undo-btn', '↶');
+        setText('#redo-btn', '↷');
+        setTitle('#brush-mode', 'Chế độ vẽ');
+        setTitle('#eraser-mode', 'Chế độ tẩy');
+        setTitle('#text-mode', 'Thêm văn bản');
+        setTitle('#undo-btn', 'Hoàn tác (Ctrl+Z)');
+        setTitle('#redo-btn', 'Làm lại (Ctrl+Y)');
+
+        setLabelFor('brush-color', 'Màu:');
+        setLabelFor('brush-size', 'Độ dày:');
+        setLabelFor('font-family', 'Phông chữ:');
+        setLabelFor('font-size', 'Cỡ chữ:');
+        setPlaceholder('#text-input', 'Nhập văn bản');
+        setTitle('#text-bold', 'In đậm');
+        setTitle('#text-italic', 'In nghiêng');
+        setText('#add-text-btn', 'Thêm chữ');
+
+        setTitle('#crop-zoom-in', 'Phóng to');
+        setTitle('#crop-zoom-out', 'Thu nhỏ');
+        setTitle('#crop-move-left', 'Dịch sang trái');
+        setTitle('#crop-move-up', 'Dịch lên trên');
+        setTitle('#crop-move-down', 'Dịch xuống dưới');
+        setTitle('#crop-move-right', 'Dịch sang phải');
+        setText('#crop-move-left', '⇦');
+        setText('#crop-move-up', '⇧');
+        setText('#crop-move-down', '⇩');
+        setText('#crop-move-right', '⇨');
+        setText('.crop-tools .primary', 'Hoàn tất');
+
+        setOptionTexts('#epddriver', [
+            '4.2 inch (đen trắng, UC8176)',
+            '4.2 inch (ba màu, UC8176)',
+            '4.2 inch (đen trắng, SSD1619)',
+            '4.2 inch (ba màu, SSD1619)',
+            '4.2 inch (bốn màu, JD79668)',
+            '5.83 inch (bốn màu, JD79665)',
+            '7.5 inch (đen trắng, UC8179)',
+            '7.5 inch (ba màu, UC8179)',
+            '7.5 inch (bốn màu, JD79665)',
+            '7.5 inch độ phân giải thấp (đen trắng, UC8159)',
+            '7.5 inch độ phân giải thấp (ba màu, UC8159)',
+            '7.5 inch HD (đen trắng, SSD1677)',
+            '7.5 inch HD (ba màu, SSD1677)'
+        ]);
+
+        setOptionTexts('#ditherMode', [
+            'Hai màu (đen trắng)',
+            'Ba màu (đen trắng đỏ)',
+            'Bốn màu (đen trắng đỏ vàng)',
+            'Sáu màu (đen trắng đỏ vàng lam lục)'
+        ]);
+
+        setOptionTexts('#ditherAlg', [
+            'Floyd-Steinberg',
+            'Atkinson',
+            'Bayer',
+            'Stucki',
+            'Jarvis-Judice-Ninke',
+            'Không dithering'
+        ]);
+
+        setOptionTexts('#brush-color', [
+            'Đen',
+            'Đỏ',
+            'Vàng',
+            'Xanh lá',
+            'Xanh dương',
+            'Trắng'
+        ]);
+
+        setOptionTexts('#font-family', [
+            'Arial',
+            'Sans-serif',
+            'Monospace',
+            'SimSun',
+            'SimHei',
+            'Microsoft YaHei',
+            'Microsoft JhengHei',
+            'KaiTi',
+            'NSimSun',
+            'FangSong',
+            'YouYuan',
+            'LiSu',
+            'STHeiti',
+            'STXihei',
+            'STKaiti',
+            'STSong',
+            'STFangsong',
+            'STZhongsong',
+            'STHupo',
+            'STXinwei',
+            'STLiti',
+            'STXingkai',
+            'FZShuTi',
+            'FZYaoti',
+            'PingFang SC',
+            'Source Han Sans CN',
+            'Source Han Serif CN',
+            'WenQuanYi Micro Hei'
+        ]);
+
+        const footerCopy = document.querySelector('.footer .copy');
+        if (footerCopy) footerCopy.textContent = '© 2025 tsl0922.';
+
+        const footerLinks = document.querySelectorAll('.footer .links a');
+        if (footerLinks[0]) footerLinks[0].textContent = 'Github';
+        if (footerLinks[1]) footerLinks[1].textContent = 'Nhóm trao đổi';
+        if (footerLinks[2]) footerLinks[2].textContent = 'Chế độ nhà phát triển';
+    }
+
+    function applyDynamicTranslation() {
+        const reconnect = document.getElementById('reconnectbutton');
+        if (reconnect) reconnect.textContent = 'Kết nối lại';
+
+        const connect = document.getElementById('connectbutton');
+        if (connect) {
+            const rawText = String(connect.textContent || '').trim();
+            if (rawText.includes('断开') || rawText.toLowerCase() === 'disconnect') {
+                connect.textContent = 'Ngắt kết nối';
+            } else if (rawText.includes('连接') || rawText.toLowerCase() === 'connect') {
+                connect.textContent = 'Kết nối';
+            } else if (!rawText) {
+                connect.textContent = 'Kết nối';
+            }
+        }
+
+        const log = document.getElementById('log');
+        if (log) {
+            log.innerHTML = log.innerHTML
+                .replace(/连接成功/g, 'Kết nối thành công')
+                .replace(/连接失败/g, 'Kết nối thất bại')
+                .replace(/断开连接/g, 'Ngắt kết nối')
+                .replace(/发送成功/g, 'Gửi thành công')
+                .replace(/发送失败/g, 'Gửi thất bại')
+                .replace(/设备/g, 'thiết bị')
+                .replace(/状态/g, 'trạng thái');
+        }
+    }
+
+    function installDialogHooks() {
+        const originalAlert = window.alert;
+        const originalConfirm = window.confirm;
+
+        window.alert = function (message) {
+            let text = String(message)
+                .replace(/连接成功/g, 'Kết nối thành công')
+                .replace(/连接失败/g, 'Kết nối thất bại')
+                .replace(/断开连接/g, 'Ngắt kết nối')
+                .replace(/请先连接设备/g, 'Vui lòng kết nối thiết bị trước')
+                .replace(/请输入文字/g, 'Vui lòng nhập văn bản')
+                .replace(/发送成功/g, 'Gửi thành công')
+                .replace(/发送失败/g, 'Gửi thất bại');
+            return originalAlert.call(this, text);
+        };
+
+        window.confirm = function (message) {
+            let text = String(message)
+                .replace(/确定/g, 'Xác nhận')
+                .replace(/清除屏幕/g, 'xóa màn hình');
+            return originalConfirm.call(this, text);
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        applyStaticTranslation();
+        injectActivationTool();
+        installDialogHooks();
+        setInterval(applyDynamicTranslation, 500);
+    });
+})();
+</script>
+
+</body></html>
